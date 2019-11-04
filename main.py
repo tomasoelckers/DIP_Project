@@ -11,4 +11,5 @@ img = mpimg.imread(imagePath)
 
 im = ColourTransformation(img)
 
+im.show_channels()
 
