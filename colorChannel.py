@@ -8,6 +8,11 @@ import numpy as np
 import cv2
 
 
+class SymptomSegmentation:
+    def __init__(self, image):
+        self.R, self.G, self.B = cv2.split(image)
+        self.r1 = R / (G + 1E-6)
+        self.r2 = B / (G + 1E-6)
 
 
 class ColourTransformation:
@@ -44,5 +49,4 @@ class ColourTransformation:
     pass
 
 
-#resize(self.RGB, (self.RGB[0] // 4, self.RGB[1] // 4),
-           anti_aliasing=True)
+#resize(self.RGB, (self.RGB[0] // 4, self.RGB[1] // 4), anti_aliasing=True)
