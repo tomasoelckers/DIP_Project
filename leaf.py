@@ -6,13 +6,35 @@ from skimage.transform import resize
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
+from segment import segment_leaf
+
+
+class Segmentation:
+    def __init__(self, image_path, filling_mode, smooth, marker_intensity):
+        # read image and segment leaf
+        self.original, self.output_image = segment_leaf((image_path), filling_mode, smooth, marker_intensity)
+        self.original = cv2.rotate(self.original, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        self.output_image = cv2.rotate(self.output_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+    def show(self):
+        plt.figure()
+        plt.subplot(1, 2, 1), plt.imshow(self.original)
+        plt.subplot(1, 2, 2), plt.imshow(self.output_image)
+        plt.show()
 
 
 class SymptomSegmentation:
     def __init__(self, image):
         self.R, self.G, self.B = cv2.split(image)
-        self.r1 = R / (G + 1E-6)
-        self.r2 = B / (G + 1E-6)
+        self.r1 = self.R / (self.G + 1E-6)
+        self.r2 = self.B / (self.G + 1E-6)
+        self.M1 = (self.r1 > 1).astype(np.int)
+        self.M2 = (self.r2 > 1).astype(np.int)
+        self.M3 = (self.r1 > .9).astype(np.int)
+        self.M4 = (self.r2 > .67).astype(np.int)
+        self.Ma = self.M1 | self.M2
+        self.Mb = self.M3 & self.M4
+        self.M = self.Ma | self.Mb
 
 
 class ColourTransformation:
