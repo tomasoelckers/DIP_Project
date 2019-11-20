@@ -184,7 +184,7 @@ if __name__ == '__main__':
 
             # write the output
             if args.with_original:
-                cv2.imwrite(new_filename, np.hstack((original,output_image)))
+                cv2.imwrite(new_filename, np.hstack((original, output_image)))
             else:
                 cv2.imwrite(new_filename, output_image)
             print('Marker generated for image file: ', file)

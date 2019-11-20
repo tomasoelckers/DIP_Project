@@ -10,16 +10,16 @@ from segment import segment_leaf
 
 
 class Segmentation:
-    def __init__(self, image_path, filling_mode, smooth, marker_intensity):
+    def __init__(self, image_path, filling_mode,  marker_intensity):
         # read image and segment leaf
-        self.original, self.output_image = segment_leaf((image_path), filling_mode, smooth, marker_intensity)
+        self.original, self.output_image = segment_leaf(image_path, filling_mode, True, marker_intensity)
         self.original = cv2.rotate(self.original, cv2.ROTATE_90_COUNTERCLOCKWISE)
         self.output_image = cv2.rotate(self.output_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
     def show(self):
         plt.figure()
         plt.subplot(1, 2, 1), plt.imshow(self.original)
-        plt.subplot(1, 2, 2), plt.imshow(self.output_image)
+        plt.subplot(1, 2, 2), plt.imshow(self.output_image, cmap= 'gray')
         plt.show()
 
 
