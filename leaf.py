@@ -35,6 +35,13 @@ class SymptomSegmentation:
         self.Ma = self.M1 | self.M2
         self.Mb = self.M3 & self.M4
         self.M = self.Ma | self.Mb
+        self.mask = self.M.astype(np.uint8)
+
+        R = cv2.bitwise_and(self.R, self.R, mask=self.mask)
+        G = cv2.bitwise_and(self.G, self.G, mask=self.mask)
+        B = cv2.bitwise_and(self.B, self.B, mask=self.mask)
+
+        self.img = cv2.merge((R, G, B))
 
 
 class ColourTransformation:
@@ -42,7 +49,8 @@ class ColourTransformation:
         im = Image.fromarray(image)
         im = im.convert('CMYK')
 
-        self.RGB = image
+        self.Gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        self.RGB = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         self.HSV = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
         self.Lab = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
         self.CMYK = np.array(im)
@@ -51,6 +59,40 @@ class ColourTransformation:
         self.H, self.S, self.V = cv2.split(self.HSV)
         self.L, self.a, self.b = cv2.split(self.Lab)
         self.C, self.M, self.Y, self.K = cv2.split(self.CMYK)
+
+    def histogram(self, channel):
+        if channel == 'R':
+            histogram, bin_edges = np.histogram(self.R, bins=256, range=(0, 256))
+        elif channel == 'G':
+            histogram, bin_edges = np.histogram(self.G, bins=256, range=(0, 256))
+        elif channel == 'B':
+            histogram, bin_edges = np.histogram(self.B, bins=256, range=(0, 256))
+        elif channel == 'Gray':
+            histogram, bin_edges = np.histogram(self.Gray, bins=256, range=(0, 256))
+        elif channel == 'H':
+            histogram, bin_edges = np.histogram(self.H, bins=256, range=(0, 256))
+        elif channel == 'S':
+            histogram, bin_edges = np.histogram(self.S, bins=256, range=(0, 256))
+        elif channel == 'V':
+            histogram, bin_edges = np.histogram(self.V, bins=256, range=(0, 256))
+        elif channel == 'L':
+            histogram, bin_edges = np.histogram(self.L, bins=256, range=(0, 256))
+        elif channel == 'a':
+            histogram, bin_edges = np.histogram(self.a, bins=256, range=(0, 256))
+        elif channel == 'b':
+            histogram, bin_edges = np.histogram(self.b, bins=256, range=(0, 256))
+        elif channel == 'C':
+            histogram, bin_edges = np.histogram(self.C, bins=256, range=(0, 256))
+        elif channel == 'M':
+            histogram, bin_edges = np.histogram(self.M, bins=256, range=(0, 256))
+        elif channel == 'Y':
+            histogram, bin_edges = np.histogram(self.Y, bins=256, range=(0, 256))
+        elif channel == 'K':
+            histogram, bin_edges = np.histogram(self.K, bins=256, range=(0, 256))
+
+        histogram = histogram[1:]
+
+        return histogram
 
     def show_channels(self):
         plt.figure()
@@ -67,8 +109,15 @@ class ColourTransformation:
         plt.subplot(6, 2, 11), plt.imshow(self.K, cmap='gray')
         plt.show()
 
-
-    pass
-
-
-#resize(self.RGB, (self.RGB[0] // 4, self.RGB[1] // 4), anti_aliasing=True)
+    def save(self, path):
+        cv2.imwrite(path + '/' + 'RGB.png', self.RGB)
+        cv2.imwrite(path + '/' + 'H.png', self.H)
+        cv2.imwrite(path + '/' + 'S.png', self.S)
+        cv2.imwrite(path + '/' + 'V.png', self.V)
+        cv2.imwrite(path + '/' + 'L.png', self.L)
+        cv2.imwrite(path + '/' + 'a.png', self.a)
+        cv2.imwrite(path + '/' + 'b.png', self.b)
+        cv2.imwrite(path + '/' + 'C.png', self.C)
+        cv2.imwrite(path + '/' + 'M.png', self.M)
+        cv2.imwrite(path + '/' + 'Y.png', self.Y)
+        cv2.imwrite(path + '/' + 'K.png', self.K)

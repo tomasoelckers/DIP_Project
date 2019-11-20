@@ -7,23 +7,28 @@ import matplotlib.image as mpimg
 import cv2
 import numpy as np
 
-
 # Load image in BGR.
-imagePath = 'Images/DSC_0010.jpg'
-#imagePath = 'Images/alga 1.jpeg'
-img = mpimg.imread(imagePath)
+# imagePath = 'Images/DSC_0010.jpg'
+imagePath = 'Images/DSC_0010_marked.jpg'
+# imagePath = 'Images/alga 1.jpeg'
+img = (mpimg.imread(imagePath))
+img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+# imS = Segmentation(imagePath, 'no', True, 0)
+# imS.show()
 
-imS = Segmentation(imagePath, 'no', True, 0)
-imS.show()
-
-imSS = SymptomSegmentation(imS.output_image)
-mask = imSS.M.astype(np.uint8)
-mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)
-res = cv2.bitwise_or(img, mask)
-
-
-plt.figure()
-plt.imshow(res)
+imSS = SymptomSegmentation(img)
+plt.figure(1)
+plt.imshow(imSS.img)
 plt.show()
 
-imCT = ColourTransformation(img)
+imCT = ColourTransformation(imSS.img)
+histogram = imCT.histogram('Gray')
+# configure and draw the histogram figure
+plt.figure(2)
+plt.title("Grayscale Histogram")
+plt.xlabel("grayscale value")
+plt.ylabel("pixels")
+plt.xlim([0.0, len(histogram)])
+plt.ylim([min(histogram), max(histogram)])
+plt.plot(histogram)
+plt.show()
