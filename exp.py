@@ -13,11 +13,6 @@ imagePath = 'Images/DSC_0010.jpg'
 # imagePath = 'Images/alga 1.jpeg'
 img = (mpimg.imread(imagePath))
 img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
-imS = Segmentation(imagePath, 'flood', 0)
+imS = Segmentation(imagePath, 'flood', True, 0)
 imS.show()
 
-img = np.hstack((imS.original, imS.output_image))
-
-plt.figure(1)
-plt.imshow(img)
-plt.show()

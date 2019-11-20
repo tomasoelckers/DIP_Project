@@ -7,21 +7,28 @@ import matplotlib.image as mpimg
 import cv2
 import numpy as np
 
-# Load image in BGR.
+# Load image
+'-------------------'
 # imagePath = 'Images/DSC_0010.jpg'
 imagePath = 'Images/DSC_0010_marked.jpg'
 # imagePath = 'Images/alga 1.jpeg'
 img = (mpimg.imread(imagePath))
 img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
-# imS = Segmentation(imagePath, 'no', True, 0)
-# imS.show()
 
+# Segmentation of the Symptoms
+'-----------------------------'
 imSS = SymptomSegmentation(img)
 plt.figure(1)
 plt.imshow(imSS.img)
 plt.show()
 
+# Split and Get 10 Different Channel of Colour and its histogram
+'---------------------------------------------'
 imCT = ColourTransformation(imSS.img)
+
+
+# Plot Histogram
+'---------------'
 histogram = imCT.histogram('Gray')
 # configure and draw the histogram figure
 plt.figure(2)

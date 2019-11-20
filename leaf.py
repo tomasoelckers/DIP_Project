@@ -1,65 +1,71 @@
-# Transform RGB to HSV, L*a*b* and CMYK.
-# Divide in 10 channel colour.
-
 from PIL import Image
 from skimage.transform import resize
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
-from segment import segment_leaf
+from segment import segment_leaf, main
 
 
+# Segmentation in Construction...
 class Segmentation:
-    def __init__(self, image_path, filling_mode,  marker_intensity):
-        # read image and segment leaf
-        self.original, self.output_image = segment_leaf(image_path, filling_mode, True, marker_intensity)
-        self.original = cv2.rotate(self.original, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        self.output_image = cv2.rotate(self.output_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    def __init__(self, image_path, filling_mode, smooth, marker_intensity):
+        # Read image and segment leaf.
+        original, output_image = main(image_path, filling_mode, smooth, marker_intensity)
+        original = cv2.rotate(original, cv2.ROTATE_90_COUNTERCLOCKWISE)  # Rotate image 90 degrees CC.
+        output_image = cv2.rotate(output_image, cv2.ROTATE_90_COUNTERCLOCKWISE)  # Rotate image 90 degrees CC.
+        self.original = cv2.cvtColor(original, cv2.COLOR_BGR2RGB)  # Change format from BGR to RGB.
+        self.output_image = cv2.cvtColor(output_image, cv2.COLOR_BGR2RGB)  # Change format from BGR to RGB.
 
     def show(self):
         plt.figure()
         plt.subplot(1, 2, 1), plt.imshow(self.original)
-        plt.subplot(1, 2, 2), plt.imshow(self.output_image, cmap= 'gray')
+        plt.subplot(1, 2, 2), plt.imshow(self.output_image)
         plt.show()
 
 
+# Segmentation of the Symptom.
 class SymptomSegmentation:
     def __init__(self, image):
-        self.R, self.G, self.B = cv2.split(image)
-        self.r1 = self.R / (self.G + 1E-6)
-        self.r2 = self.B / (self.G + 1E-6)
+        self.R, self.G, self.B = cv2.split(image)  # Split each RGB channel.
+        self.r1 = self.R / (self.G + 1E-6)  # First symptom ratio mask.
+        self.r2 = self.B / (self.G + 1E-6)  # Second symptom ratio mask.
+        # Logic operation aiming final mask with symptoms.
         self.M1 = (self.r1 > 1).astype(np.int)
         self.M2 = (self.r2 > 1).astype(np.int)
         self.M3 = (self.r1 > .9).astype(np.int)
         self.M4 = (self.r2 > .67).astype(np.int)
-        self.Ma = self.M1 | self.M2
-        self.Mb = self.M3 & self.M4
-        self.M = self.Ma | self.Mb
-        self.mask = self.M.astype(np.uint8)
+        self.Ma = self.M1 | self.M2  # Or logic operation.
+        self.Mb = self.M3 & self.M4  # And logic operation.
+        self.M = self.Ma | self.Mb  # Or logic operation.
+        self.mask = self.M.astype(np.uint8)  # Change format to uint8.
 
+        # Applying Mask to each channel.
         R = cv2.bitwise_and(self.R, self.R, mask=self.mask)
         G = cv2.bitwise_and(self.G, self.G, mask=self.mask)
         B = cv2.bitwise_and(self.B, self.B, mask=self.mask)
 
+        # Merge 3 final channel, RGB.
         self.img = cv2.merge((R, G, B))
 
 
+# Split and Transform RGB to 10 Channel Colour of HSV, L*a*b and CMYK space colour.
 class ColourTransformation:
     def __init__(self, image):
-        im = Image.fromarray(image)
-        im = im.convert('CMYK')
+        im = Image.fromarray(image)  # Transform image to a PIL image object.
+        im = im.convert('CMYK')  # Convert the RGB image to CMYK.
 
-        self.Gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        self.RGB = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        self.HSV = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-        self.Lab = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
-        self.CMYK = np.array(im)
+        self.Gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)  # Change format from RGB to Grayscale.
+        self.RGB = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Change format from BGR to RGB.
+        self.HSV = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)  # Change format from RGB to HSV.
+        self.Lab = cv2.cvtColor(image, cv2.COLOR_RGB2LAB)  # Change format from RGB to Lab.
+        self.CMYK = np.array(im)  # CMYK PIL object to a numpy array.
 
-        self.R, self.G, self.B = cv2.split(self.RGB)
-        self.H, self.S, self.V = cv2.split(self.HSV)
-        self.L, self.a, self.b = cv2.split(self.Lab)
-        self.C, self.M, self.Y, self.K = cv2.split(self.CMYK)
+        self.R, self.G, self.B = cv2.split(self.RGB)  # Split each channel.
+        self.H, self.S, self.V = cv2.split(self.HSV)  # Split each channel.
+        self.L, self.a, self.b = cv2.split(self.Lab)  # Split each channel.
+        self.C, self.M, self.Y, self.K = cv2.split(self.CMYK)  # Split each channel.
 
+    # Get histogram array for each channel.
     def histogram(self, channel):
         if channel == 'R':
             histogram, bin_edges = np.histogram(self.R, bins=256, range=(0, 256))
@@ -90,7 +96,7 @@ class ColourTransformation:
         elif channel == 'K':
             histogram, bin_edges = np.histogram(self.K, bins=256, range=(0, 256))
 
-        histogram = histogram[1:]
+        histogram = histogram[1:]  # Delete the first element of the array
 
         return histogram
 
