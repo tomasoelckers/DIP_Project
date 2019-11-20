@@ -47,8 +47,7 @@ def Color_adj(Img, a=1):  # Receives an uint8 image
 	r_adj = r + a * (g_avg - r_avg) * (1 - r) * g  # Red channel adjustment.
 	g_adj = g + a * (r_avg - g_avg) * (1 - g) * r  # Green channel adjustment.
 	b_adj = b + a * (g_avg - b_avg) * (1 - b) * g  # Blue channel adjustment.
-	Iout = cv2.merge(
-		(b * Imax, g_adj * Imax, r_adj * Imax))  # Reinstate the color space with the color balance adjustments.
+	Iout = cv2.merge((b * Imax, g_adj * Imax, r_adj * Imax))  # Reinstate the color space with the color balance adjustments.
 	Iout = Iout.astype(np.uint8)
 	return Iout
 
@@ -87,7 +86,7 @@ def unsharp(Iin, sigma, strength): #Unsharp. Create a blurry version of the orig
 def Sharpen(Img):
 	Isharp = np.zeros_like(Img) #Empty array of same dimensions of input image.
 	for i in range(2): #Apply unsharping to each color channel (b, g, r).
-		Isharp[:, :, i] = unsharp(Img[:,:,i], 10, 0.8)
+		Isharp[:, :, i] = unsharp(Img[:,:,i], 7, 0.7)
 	Isharp = Isharp.astype(np.uint8) #To return it to image type.
 	return Isharp
 
@@ -106,9 +105,9 @@ def ImgShow(Original, New):
 def Run(Img):
 	Iwb = GrayWorld(Img) #White balance.
 	Ica = Color_adj(Iwb) #Color balance.
-	Ihe = CLAHE(Ica)
-	#Isharp = Sharpen(Ihe) #Sharpen
-	return Ihe
+	#Ihe = CLAHE(Ica)
+	Isharp = Sharpen(Ica) #Sharpen
+	return Isharp
 
 # ==========
 # Execution

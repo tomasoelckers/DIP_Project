@@ -26,23 +26,23 @@ class Segmentation:
 # Segmentation of the Symptom.
 class SymptomSegmentation:
     def __init__(self, image):
-        self.R, self.G, self.B = cv2.split(image)  # Split each RGB channel.
-        self.r1 = self.R / (self.G + 1E-6)  # First symptom ratio mask.
-        self.r2 = self.B / (self.G + 1E-6)  # Second symptom ratio mask.
+        R, G, B = cv2.split(image)  # Split each RGB channel.
+        r1 = R / (G + 1E-6)  # First symptom ratio mask.
+        r2 = B / (G + 1E-6)  # Second symptom ratio mask.
         # Logic operation aiming final mask with symptoms.
-        self.M1 = (self.r1 > 1).astype(np.int)
-        self.M2 = (self.r2 > 1).astype(np.int)
-        self.M3 = (self.r1 > .9).astype(np.int)
-        self.M4 = (self.r2 > .67).astype(np.int)
-        self.Ma = self.M1 | self.M2  # Or logic operation.
-        self.Mb = self.M3 & self.M4  # And logic operation.
-        self.M = self.Ma | self.Mb  # Or logic operation.
-        self.mask = self.M.astype(np.uint8)  # Change format to uint8.
+        M1 = (r1 > 1).astype(np.int)
+        M2 = (r2 > 1).astype(np.int)
+        M3 = (r1 > .9).astype(np.int)
+        M4 = (r2 > .67).astype(np.int)
+        Ma = M1 | M2  # Or logic operation.
+        Mb = M3 & M4  # And logic operation.
+        M = Ma | Mb  # Or logic operation.
+        mask = M.astype(np.uint8)  # Change format to uint8.
 
         # Applying Mask to each channel.
-        R = cv2.bitwise_and(self.R, self.R, mask=self.mask)
-        G = cv2.bitwise_and(self.G, self.G, mask=self.mask)
-        B = cv2.bitwise_and(self.B, self.B, mask=self.mask)
+        R = cv2.bitwise_and(R, R, mask=mask)
+        G = cv2.bitwise_and(G, G, mask=mask)
+        B = cv2.bitwise_and(B, B, mask=mask)
 
         # Merge 3 final channel, RGB.
         self.img = cv2.merge((R, G, B))
