@@ -1,9 +1,12 @@
 from PIL import Image
 from skimage.transform import resize
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import numpy as np
 import cv2
 from segment import segment_leaf, main
+from Color_Sharpen import Run as ColorSharpen
+from os import walk
 
 
 # Segmentation in Construction...
@@ -127,3 +130,57 @@ class ColourTransformation:
         cv2.imwrite(path + '/' + 'M.png', self.M)
         cv2.imwrite(path + '/' + 'Y.png', self.Y)
         cv2.imwrite(path + '/' + 'K.png', self.K)
+
+
+def dip(folder_path):
+    # Images names
+    '-------------'
+    f = []
+    for (dirpath, dirnames, filenames) in walk(folder_path):
+        f.extend(filenames)
+        break
+    folderSave = 'DataResult/'
+    i = 1
+    for imagePath in f:
+        print(imagePath)
+        # Load image segmented
+        '-------------------'
+        img = mpimg.imread(folder_path + '/' + imagePath)
+        img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+        # Implemention of Tarik Method
+        '-----------------------------'
+        image = ColorSharpen(img)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        # Segmentation of the Symptoms
+        '-----------------------------'
+        imSS = SymptomSegmentation(img)
+        imSS_1 = SymptomSegmentation(image)
+
+        mpimg.imsave(folderSave + str(i) + '.png', imSS.img)
+        mpimg.imsave(folderSave + str(i) + str(i) + '.png', imSS_1.img)
+
+        # Split and Get 10 Different Channel of Colour and its histogram
+        '---------------------------------------------'
+        imCT = ColourTransformation(imSS.img)
+        imCT_1 = ColourTransformation(imSS_1.img)
+
+        # Plot Histogram
+        '---------------'
+        histogram = imCT.histogram('Gray')
+        histogram_1 = imCT_1.histogram('Gray')
+        # configure and draw the histogram figure
+        plt.figure()
+        plt.title("Grayscale Histogram")
+        plt.xlabel("grayscale value")
+        plt.ylabel("pixels")
+        plt.xlim([0.0, len(histogram)])
+        plt.ylim([min(histogram), max(histogram)])
+        plt.plot(histogram, 'r', label='Original ')
+        plt.plot(histogram_1, 'b', label='Ancuti Method')
+        plt.legend()
+        plt.savefig(folderSave + 'histogram_' + str(i) + '.png')
+
+        print(imagePath + ', ' + str(sum(histogram)) + ', ' + str(sum(histogram_1)))
+        i += 1

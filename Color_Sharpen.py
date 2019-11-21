@@ -16,6 +16,8 @@ Step 3: Sharpening (Always normalizing).
 	2) Normalized Unsharp Masking.
 
 '''
+
+
 # =====================
 # Gray-World Algorithm
 # =====================
@@ -47,7 +49,8 @@ def Color_adj(Img, a=1):  # Receives an uint8 image
 	r_adj = r + a * (g_avg - r_avg) * (1 - r) * g  # Red channel adjustment.
 	g_adj = g + a * (r_avg - g_avg) * (1 - g) * r  # Green channel adjustment.
 	b_adj = b + a * (g_avg - b_avg) * (1 - b) * g  # Blue channel adjustment.
-	Iout = cv2.merge((b * Imax, g_adj * Imax, r_adj * Imax))  # Reinstate the color space with the color balance adjustments.
+	Iout = cv2.merge(
+		(b * Imax, g_adj * Imax, r_adj * Imax))  # Reinstate the color space with the color balance adjustments.
 	Iout = Iout.astype(np.uint8)
 	return Iout
 
@@ -55,16 +58,23 @@ def Color_adj(Img, a=1):  # Receives an uint8 image
 # ===========
 # Sharpening
 # ===========
+def Gamma(Img, gamma = 1):
+	invGamma = 1 / gamma
+	table = np.array([((i/255)**invGamma)*255
+					  for i in np.arange(0,256)]).astype(np.uint8)
+	return cv2.LUT(Img, table)
 
-def CLAHE(Img):  # Contrast Limiting Adaptive Histogram Equalization (aka CLAHE)
+
+def CLAHE(Img, clipLimit=1, tileGridSize=(8,8)):  # Contrast Limiting Adaptive Histogram Equalization (aka CLAHE)
 	#clahe = cv2.createCLAHE()
 	#Img = clahe.apply(Img)
-	colors = [1, 2]  # b=0, g=1, r=2. Only applying CLAHE to G and R.
-	for c in colors:
-		clahe = cv2.createCLAHE()  # Create the CLAHE array.
-		Img[:, :, c] = clahe.apply(Img[:, :, c])  # Apply CLAHE to each color channel.
-	Img = cv2.convertScaleAbs(Img, None, 1, -20) #Adjust global contrast and brightness.
-
+	lab = cv2.cvtColor(Img, cv2.COLOR_BGR2LAB)
+	lab_planes = cv2.split(lab)
+	clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(5,5))
+	lab_planes[0] = clahe.apply(lab_planes[0])
+	lab = cv2.merge(lab_planes)
+	Img = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+	#Img = cv2.convertScaleAbs(Img, None, 1, -20) #Adjust global contrast and brightness.
 	return Img
 
 
@@ -86,7 +96,7 @@ def unsharp(Iin, sigma, strength): #Unsharp. Create a blurry version of the orig
 def Sharpen(Img):
 	Isharp = np.zeros_like(Img) #Empty array of same dimensions of input image.
 	for i in range(2): #Apply unsharping to each color channel (b, g, r).
-		Isharp[:, :, i] = unsharp(Img[:,:,i], 7, 0.7)
+		Isharp[:, :, i] = unsharp(Img[:,:,i], 10, 0.8)
 	Isharp = Isharp.astype(np.uint8) #To return it to image type.
 	return Isharp
 
@@ -103,15 +113,13 @@ def ImgShow(Original, New):
 	plt.show()
 
 def Run(Img):
+	#Ig = Gamma(Img, 0.4)
+	#Ig = cv2.convertScaleAbs(Ig, None, 1.2, 0)
 	Iwb = GrayWorld(Img) #White balance.
 	Ica = Color_adj(Iwb) #Color balance.
-	#Ihe = CLAHE(Ica)
-	Isharp = Sharpen(Ica) #Sharpen
-	return Isharp
-
-# ==========
-# Execution
-# ==========
-#Io = Run(I) #Run
-#ImgShow(I, Io) #Plot
-#cv2.imwrite("Output.png",Io) #Save image file.
+	#Ica = cv2.convertScaleAbs(Ica, None, 0.9, -15)
+	Ig = Gamma(Img, 0.85)
+	Ihe = CLAHE(Ig, clipLimit=1.5, tileGridSize=(20,20))
+	#Ihe = cv2.convertScaleAbs(Ihe, None, 0.7, 0)
+	#Isharp = Sharpen(Ica) #Sharpen
+	return cv2.cvtColor(Ihe, cv2.COLOR_BGR2RGB)

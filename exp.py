@@ -1,18 +1,5 @@
-from leaf import ColourTransformation
-from leaf import SymptomSegmentation
-from leaf import Segmentation
+from leaf import *
 
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import cv2
-import numpy as np
+dip('Dataset_markers')
 
-# Load image in BGR.
-imagePath = 'Images/DSC_0010.jpg'
-# imagePath = 'Images/DSC_0010_marked.jpg'
-# imagePath = 'Images/alga 1.jpeg'
-img = (mpimg.imread(imagePath))
-img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
-imS = Segmentation(imagePath, 'flood', True, 0)
-imS.show()
 

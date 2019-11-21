@@ -1,6 +1,4 @@
-from leaf import ColourTransformation
-from leaf import SymptomSegmentation
-from leaf import Segmentation
+from leaf import *
 from Color_Sharpen import Run as ColorSharpen
 
 import matplotlib.pyplot as plt
@@ -11,7 +9,7 @@ import numpy as np
 # Load image segmented
 '-------------------'
 # imagePath = 'Images/DSC_0010.jpg'
-imagePath = 'Images/DSC_0010_marked.jpg'
+imagePath = 'Dataset_markers/DSC_0010_marked.jpg'
 # imagePath = 'Images/alga 1.jpeg'
 img = (mpimg.imread(imagePath))
 img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
@@ -50,6 +48,6 @@ plt.ylabel("pixels")
 plt.xlim([0.0, len(histogram)])
 plt.ylim([min(histogram), max(histogram)])
 plt.plot(histogram, 'r', label='Original')
-plt.plot(histogram_1, 'b', label='Tarik Method')
+plt.plot(histogram_1, 'b', label='Ancuti Method')
 plt.legend()
 plt.show()
